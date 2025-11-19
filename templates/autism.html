@@ -1,1 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Interpretation Game</title>
+    
+    <!-- Import Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #6366F1;
+            --primary-dark: #4338CA;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --background: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --error: #EF4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            color: var(--text-primary);
+        }
+        
+        /* Animated background elements */
+        .bg-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(79, 70, 229, 0.05);
+            animation: float 25s infinite ease-in-out;
+        }
+        
+        .bubble:nth-child(1) {
+            width: 120px;
+            height: 120px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .bubble:nth-child(2) {
+            width: 80px;
+            height: 80px;
+            top: 70%;
+            left: 80%;
+            animation-delay: -5s;
+        }
+        
+        .bubble:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            top: 40%;
+            left: 85%;
+            animation-delay: -10s;
+        }
+        
+        .bubble:nth-child(4) {
+            width: 100px;
+            height: 100px;
+            top: 80%;
+            left: 15%;
+            animation-delay: -15s;
+        }
+        
+        .bubble:nth-child(5) {
+            width: 60px;
+            height: 60px;
+            top: 20%;
+            left: 70%;
+            animation-delay: -7s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0) scale(1);
+            }
+            25% {
+                transform: translateY(-20px) translateX(10px) scale(1.05);
+            }
+            50% {
+                transform: translateY(-10px) translateX(-10px) scale(1.02);
+            }
+            75% {
+                transform: translateY(10px) translateX(15px) scale(1.05);
+            }
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            width: 100%;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            background-size: 200% 100%;
+            animation: gradientShift 3s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 400;
+        }
+        
+        #sentence-box {
+            font-size: 20px;
+            margin: 20px 0;
+            padding: 25px;
+            background: #F8FAFC;
+            border-radius: 14px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.5;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #sentence-box.loading {
+            background: linear-gradient(90deg, #F1F5F9 25%, #F8FAFC 50%, #F1F5F9 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        
+        .options {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.05), transparent);
+            transition: left 0.7s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .correct {
+            background: #ECFDF5 !important;
+            color: #065F46 !important;
+            border-color: #10B981 !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15) !important;
+            animation: correctPulse 0.6s ease;
+        }
+        
+        .wrong {
+            background: #FEF2F2 !important;
+            color: #991B1B !important;
+            border-color: #EF4444 !important;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15) !important;
+            animation: wrongShake 0.5s ease;
+        }
+        
+        #next-btn {
+            margin-top: 20px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.25);
+            display: block;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #next-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+        }
+        
+        #next-btn:hover::after {
+            transform: translateX(100%);
+            transition: transform 0.6s;
+        }
+        
+        #next-btn:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 6px 10px rgba(79, 70, 229, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        #next-btn:active {
+            transform: translateY(0);
+        }
+        
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 20px;
+            background: #F8FAFC;
+            border-radius: 14px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            width: 100%;
+            gap: 20px; /* Added gap for spacing between cards */
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 0; /* Prevents flex items from overflowing */
+            padding: 0 10px; /* Added padding for more spacing */
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            text-align: center;
+        }
+        
+        /* Animation for correct answer */
+        @keyframes correctPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        
+        /* Animation for wrong answer */
+        @keyframes wrongShake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            10%, 30%, 50%, 70%, 90% {
+                transform: translateX(-5px);
+            }
+            20%, 40%, 60%, 80% {
+                transform: translateX(5px);
+            }
+        }
+        
+        /* Floating animation for stats */
+        @keyframes floatStat {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .stat-item:nth-child(1) .stat-value {
+            animation: floatStat 3s ease-in-out infinite;
+        }
+        
+        .stat-item:nth-child(2) .stat-value {
+            animation: floatStat 3s ease-in-out infinite 0.5s;
+        }
+        
+        .stat-item:nth-child(3) .stat-value {
+            animation: floatStat 3s ease-in-out infinite 1s;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .container {
+                gap: 15px;
+            }
+            
+            .card {
+                padding: 25px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            #sentence-box {
+                font-size: 18px;
+                padding: 20px;
+                min-height: 100px;
+            }
+            
+            .btn, #next-btn {
+                font-size: 15px;
+                padding: 14px;
+            }
+            
+            .stats-container {
+                padding: 15px;
+                gap: 15px; /* Slightly smaller gap on mobile */
+            }
+            
+            .stat-item {
+                padding: 0 5px; /* Smaller padding on mobile */
+            }
+            
+            .stat-value {
+                font-size: 22px;
+            }
+        }
 
+        @media (max-width: 400px) {
+            .stats-container {
+                gap: 10px; /* Even smaller gap on very small screens */
+            }
+            
+            .stat-item {
+                padding: 0 3px;
+            }
+            
+            .stat-value {
+                font-size: 20px;
+            }
+            
+            .stat-label {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Animated background elements -->
+    <div class="bg-elements">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>Emotion Interpretation</h1>
+                <p class="subtitle">Identify the emotion behind each sentence</p>
+            </div>
+
+            <div id="sentence-box" class="loading">Loading…</div>
+
+            <div id="options" class="options"></div>
+
+            <button id="next-btn">Next Sentence</button>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stat-item">
+                <span class="stat-value" id="score">0</span>
+                <span class="stat-label">Score</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="correct-count">0</span>
+                <span class="stat-label">Correct</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="total-count">0</span>
+                <span class="stat-label">Total</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fixed JavaScript to call Flask endpoints -->
+    <script>
+        let correctTone = null;
+        let buttonsLocked = false;
+        let score = 0;
+        let correctCount = 0;
+        let totalCount = 0;
+
+        async function loadQuestion() {
+            buttonsLocked = false;
+
+            // Add loading animation to sentence box
+            const sentenceBox = document.getElementById("sentence-box");
+            sentenceBox.innerHTML = "Loading…";
+            sentenceBox.classList.add("loading");
+
+            // Reset options
+            document.getElementById("options").innerHTML = "";
+
+            try {
+                // Call the actual Flask endpoint
+                const res = await fetch("/get-question");
+                const data = await res.json();
+                
+                correctTone = data.correct;
+
+                sentenceBox.innerHTML = data.sentence;
+                sentenceBox.classList.remove("loading");
+
+                let options = data.options.sort(() => Math.random() - 0.5);
+
+                let optHTML = "";
+
+                options.forEach(option => {
+                    optHTML += `
+                        <button class="btn" onclick="checkAnswer('${option}', this)">
+                            ${option.charAt(0).toUpperCase() + option.slice(1)}
+                        </button>
+                    `;
+                });
+
+                document.getElementById("options").innerHTML = optHTML;
+            } catch (error) {
+                console.error("Error loading question:", error);
+                sentenceBox.innerHTML = "Error loading question. Please try again.";
+                sentenceBox.classList.remove("loading");
+            }
+        }
+
+        async function checkAnswer(selected, btn) {
+            if (buttonsLocked) return;  
+            buttonsLocked = true;
+
+            // Increment total questions count
+            totalCount++;
+            document.getElementById("total-count").textContent = totalCount;
+
+            try {
+                // Call the actual Flask endpoint to check the answer
+                const res = await fetch("/check-answer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ answer: selected, correct: correctTone })
+                });
+
+                const data = await res.json();
+
+                if (data.correct) {
+                    btn.classList.add("correct");
+                    
+                    // Update score and correct count
+                    score += 10;
+                    correctCount++;
+                    document.getElementById("score").textContent = score;
+                    document.getElementById("correct-count").textContent = correctCount;
+                } else {
+                    btn.classList.add("wrong");
+
+                    // highlight the correct one too
+                    [...document.querySelectorAll(".btn")].forEach(b => {
+                        if (b.innerText.toLowerCase() === correctTone.toLowerCase()) {
+                            b.classList.add("correct");
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error checking answer:", error);
+                alert("Error checking answer. Please try again.");
+            }
+
+            // Remove animations after they complete
+            setTimeout(() => {
+                btn.style.animation = "";
+                [...document.querySelectorAll(".btn")].forEach(b => {
+                    b.style.animation = "";
+                });
+            }, 1000);
+        }
+
+        // Load first question automatically
+        loadQuestion();
+
+        // Add event listener to next button
+        document.getElementById("next-btn").addEventListener("click", loadQuestion);
+    </script>
+</body>
+</html>
