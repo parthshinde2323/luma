@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dyslexia Reading Assistant</title>
+    
+    <!-- Import Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #6366F1;
+            --primary-dark: #4338CA;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --background: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --error: #EF4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            color: var(--text-primary);
+        }
+        
+        /* Animated background elements */
+        .bg-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(79, 70, 229, 0.05);
+            animation: float 25s infinite ease-in-out;
+        }
+        
+        .bubble:nth-child(1) {
+            width: 120px;
+            height: 120px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .bubble:nth-child(2) {
+            width: 80px;
+            height: 80px;
+            top: 70%;
+            left: 80%;
+            animation-delay: -5s;
+        }
+        
+        .bubble:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            top: 40%;
+            left: 85%;
+            animation-delay: -10s;
+        }
+        
+        .bubble:nth-child(4) {
+            width: 100px;
+            height: 100px;
+            top: 80%;
+            left: 15%;
+            animation-delay: -15s;
+        }
+        
+        .bubble:nth-child(5) {
+            width: 60px;
+            height: 60px;
+            top: 20%;
+            left: 70%;
+            animation-delay: -7s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0) scale(1);
+            }
+            25% {
+                transform: translateY(-20px) translateX(10px) scale(1.05);
+            }
+            50% {
+                transform: translateY(-10px) translateX(-10px) scale(1.02);
+            }
+            75% {
+                transform: translateY(10px) translateX(15px) scale(1.05);
+            }
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            width: 100%;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            background-size: 200% 100%;
+            animation: gradientShift 3s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 400;
+            margin-top: 10px;
+        }
+        
+        .upload-box {
+            padding: 40px 20px;
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #F8FAFC;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upload-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.05), transparent);
+            transition: left 0.7s;
+        }
+        
+        .upload-box:hover::before {
+            left: 100%;
+        }
+        
+        .upload-box:hover {
+            border-color: var(--primary-light);
+            background: #F0F4FF;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .upload-box p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        #text-output {
+            white-space: pre-wrap;
+            margin-top: 10px;
+            font-size: 18px;
+            line-height: 1.8;
+            padding: 25px;
+            background: #F8FAFC;
+            border-radius: 14px;
+            border-left: 4px solid var(--primary);
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+        
+        .bold-first-two {
+            font-weight: bold;
+        }
+        
+        #audioPlayer {
+            width: 100%;
+            margin-top: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        #audioPlayer:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .audio-container {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #F8FAFC;
+            border-radius: 14px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .audio-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        /* Animation for loading state */
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0.6;
+            }
+        }
+        
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            .container {
+                max-width: 95%;
+            }
+            
+            .card {
+                padding: 25px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            #text-output {
+                font-size: 16px;
+                padding: 20px;
+            }
+            
+            .upload-box {
+                padding: 30px 15px;
+            }
+            
+            .upload-box p {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                gap: 15px;
+            }
+            
+            .card {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            #text-output {
+                font-size: 15px;
+                padding: 15px;
+                line-height: 1.6;
+            }
+            
+            .upload-box {
+                padding: 25px 10px;
+            }
+            
+            .upload-icon {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Animated background elements -->
+    <div class="bg-elements">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>Dyslexia Reading Assistant</h1>
+                <p class="subtitle">Upload a text file to get a dyslexia-friendly version with audio</p>
+            </div>
+
+            <div class="upload-box" id="uploadBox">
+                <div class="upload-icon">📁</div>
+                <p>Click to upload a .txt file</p>
+                <input type="file" id="fileInput" accept=".txt" style="display:none;">
+            </div>
+
+            <h3 class="section-title">Processed Text</h3>
+            <div id="text-output">Your processed text will appear here...</div>
+
+            <div class="audio-container" id="audioContainer">
+                <span class="audio-label">Audio Version</span>
+                <audio id="audioPlayer" controls></audio>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript - KEPT EXACTLY THE SAME AS ORIGINAL -->
+    <script>
+        const fileInput = document.getElementById("fileInput");
+        const textOutput = document.getElementById("text-output");
+        const audioPlayer = document.getElementById("audioPlayer");
+        const uploadBox = document.getElementById("uploadBox");
+        const audioContainer = document.getElementById("audioContainer");
+
+        // Make the entire upload box clickable
+        uploadBox.addEventListener("click", function() {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener("change", async function () {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Show loading state
+            textOutput.textContent = "Processing text...";
+            textOutput.classList.add("loading");
+
+            // Read text from file
+            const text = await file.text();
+
+            // Display processed text (first 2 letters bold)
+            textOutput.innerHTML = formatText(text);
+            textOutput.classList.remove("loading");
+
+            // Send text → Backend to generate audio
+            try {
+                const response = await fetch("/dyslexia/audio", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+
+                if (data.audio_url) {
+                    audioPlayer.src = data.audio_url;
+                    audioContainer.style.display = "block";
+                }
+            } catch (error) {
+                console.error("Error generating audio:", error);
+                textOutput.innerHTML += "<br><br><span style='color: var(--error);'>Error generating audio. Please try again.</span>";
+            }
+        });
+
+        // ---- Bold first two letters of all words ----
+        function formatText(text) {
+            return text.split(/\s+/).map(word => {
+                if (word.length > 2) {
+                    return `<span class="bold-first-two">${word.slice(0, 2)}</span>${word.slice(2)}`;
+                }
+                return `<span class="bold-first-two">${word}</span>`;
+            }).join(" ");
+        }
+    </script>
+</body>
+</html>
