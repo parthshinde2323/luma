@@ -11,6 +11,10 @@ autism_game = Autism()
 def index_page():
     return render_template("index.html")
 
+@app.route("/autism")
+def autism_page():
+    return render_template("autism.html")
+
 @app.route("/dyslexia")
 def dyslexia_page():
     for f in glob.glob("static/*.mp3"):
@@ -54,4 +58,5 @@ def check_answer():
 
 
 if __name__ == "__main__":
+
     app.run(debug=True)
